@@ -29,22 +29,19 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
             $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
-            if ($user) {
-                // Verify password
-                if (password_verify($password, $user['password'])) {
+            switch (true) {
+                case !$user || !password_verify($password, $user['password']):
+                    $error_message = "Incorrect username or password.";
+                    break;
+                default:
                     $_SESSION['username'] = $user['username'];
                     header("Location: welcome.php");
                     exit;
-                } else {
-                    $_SESSION['error'] = "Incorrect username or password.";
-                    header("Location: login.php");
-                    exit;
-                }
-            } else {
-                $_SESSION['error'] = "Incorrect username or password.";
-                header("Location: login.php");
-                exit;
             }
+            
+            $_SESSION['error'] = $error_message;
+            header("Location: login.php");
+            exit;
         } catch (PDOException $e) {
             $_SESSION['error'] = "Database error: ". $e->getMessage();
             header("Location: login.php");
