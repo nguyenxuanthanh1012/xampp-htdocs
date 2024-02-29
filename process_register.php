@@ -1,5 +1,7 @@
 <?php
     session_start();
+    include 'db_connection.php';
+
     if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $username = $_POST["username"];
         $email = $_POST["email"];
@@ -27,14 +29,11 @@
                 $error_message = "You must agree to the terms & conditions.";
                 break;
             default:
-                // Database connection configuration
-                $db = "mysql:host=localhost;dbname=test";
-                $username_db = "root";
-                $password_db = "";
+                // Connect to the database
+                Database::connect("localhost", "test", "root", "");
         
                 try {
-                    $pdo = new PDO($db, $username_db, $password_db);
-                    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+                    $pdo = Database::getPDO();
                     $stmt = $pdo->prepare("INSERT INTO users (username, email, password) VALUES (:username, :email, :password)");
         
                     $stmt->bindParam(':username', $username);
@@ -53,6 +52,8 @@
                     $_SESSION['error'] = "Database error: ". $e->getMessage();
                     header("Location: register.php");
                     exit;
+                } finally {
+                    Database::close();
                 }
         }
         
